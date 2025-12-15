@@ -33,26 +33,25 @@ fzf_config() {
     alias fvim=nvim_fzf
 }
 
-git_project_list() {
-    local git_dirs
-
-    CD_PROJECT_IGNORE_LIST="${HOME}/.local ${HOME}/.config ${HOME}/.oh-my-zsh ${HOME}/.tmux"
-
-    git_dirs=$(find "${HOME}" -type d -name .git)
-    for ignore_dir in $(echo "${CD_PROJECT_IGNORE_LIST}" | sed 's/ /\n/'); do
-        git_dirs=$(echo "${git_dirs}" | grep -v "${ignore_dir}")
-    done
-
-    echo "${git_dirs}" | xargs dirname
+git_dirs() {
+    # -H: hidden
+    # -I: ignoreファイルを含める
+    # -g: globオプション
+    # -E: exclude pattern
+    # -x: execute
+    fd -HI -t d -g '**/.git' "${HOME}/data" | xargs dirname
 }
 
 cd_git_dir() {
-    local git_dirs=$(git_project_list)
+    local dir
 
-    cd $(echo "${git_dirs}" | fzf --tmux center)
+    dir=$(git_dirs | \
+            sort -u | \
+            fzf --tmux center --preview 'tree -C -L 1 {}' --prompt="Git roots>")
+    [ -n "${dir}" ] && cd "${dir}"
 }
 
-alias cdgitdir=cd_git_dir
+alias cgd=cd_git_dir
 
 tmux_config
 nvim_config
