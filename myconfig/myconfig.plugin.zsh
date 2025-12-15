@@ -50,8 +50,40 @@ cd_git_dir() {
             fzf --tmux center --preview 'tree -C -L 1 {}' --prompt="Git roots>")
     [ -n "${dir}" ] && cd "${dir}"
 }
-
 alias cgd=cd_git_dir
+
+# fzf history
+function fzf-select-history() {
+    BUFFER=$(history -n -r 1 | sort -u | fzf --query "$LBUFFER" --reverse)
+    CURSOR=$#BUFFER
+    zle reset-prompt
+}
+zle -N fzf-select-history
+bindkey '^r' fzf-select-history
+
+# cdrコマンドを使用できるようにする
+# cdr: ディレクトリの移動履歴を表示する
+load_cdr() {
+    mkdir -p "${HOME}/.cache/shell"
+
+    autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
+    autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
+}
+
+# fzf cdr
+function fzf-cdr() {
+    local selected_dir=$(cdr -l | awk '{ print $2 }' | fzf --reverse)
+    if [ -n "$selected_dir" ]; then
+        BUFFER="cd ${selected_dir}"
+        zle accept-line
+    fi
+
+    zle clear-screen
+}
+load_cdr
+zle -N fzf-cdr
+setopt noflowcontrol
+bindkey '^q' fzf-cdr
 
 tmux_config
 nvim_config
