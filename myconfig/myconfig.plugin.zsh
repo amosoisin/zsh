@@ -85,6 +85,9 @@ zle -N fzf-cdr
 setopt noflowcontrol
 bindkey '^q' fzf-cdr
 
+# set extra path
+export PATH=$PATH:~/.local/bin/
+
 tmux_config
 nvim_config
 
