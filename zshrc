@@ -87,6 +87,8 @@ plugins=(
 	zsh-256color
 	myconfig
 	zsh-you-should-use
+	forgit
+	fzf-tab
 )
 
 source $ZSH/oh-my-zsh.sh
