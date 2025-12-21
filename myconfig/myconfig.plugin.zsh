@@ -97,3 +97,5 @@ fzf_config
 
 setopt nonomatch
 export PATH="${PATH}:${HOME}/go/bin"
+
+alias e="exa --icons"
