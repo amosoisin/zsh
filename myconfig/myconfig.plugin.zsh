@@ -123,3 +123,6 @@ setopt nonomatch
 export PATH="${PATH}:${HOME}/go/bin"
 
 alias e="exa --icons"
+alias el="exa --icons -l"
+alias l="exa --icons"
+alias ll="exa --icons -l"
