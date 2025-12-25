@@ -89,6 +89,7 @@ plugins=(
 	zsh-you-should-use
 	forgit
 	fzf-tab
+	zsh-completions
 )
 
 source $ZSH/oh-my-zsh.sh
