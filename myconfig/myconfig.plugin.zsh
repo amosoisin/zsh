@@ -104,7 +104,7 @@ fzf_config
 setopt nonomatch
 export PATH="${PATH}:${HOME}/go/bin"
 
-alias e="exa --icons"
-alias el="exa --icons -l"
-alias l="exa --icons"
-alias ll="exa --icons -l"
+alias e="eza --icons"
+alias el="eza --icons -l"
+alias l="eza --icons"
+alias ll="eza --icons -l"
