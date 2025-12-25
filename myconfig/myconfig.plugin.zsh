@@ -61,30 +61,6 @@ function fzf-select-history() {
 zle -N fzf-select-history
 bindkey '^r' fzf-select-history
 
-# cdrコマンドを使用できるようにする
-# cdr: ディレクトリの移動履歴を表示する
-load_cdr() {
-    mkdir -p "${HOME}/.cache/shell"
-
-    autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
-    autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
-}
-
-# fzf cdr
-function fzf-cdr() {
-    local selected_dir=$(cdr -l | awk '{ print $2 }' | fzf --reverse)
-    if [ -n "$selected_dir" ]; then
-        BUFFER="cd ${selected_dir}"
-        zle accept-line
-    fi
-
-    zle clear-screen
-}
-load_cdr
-zle -N fzf-cdr
-setopt noflowcontrol
-bindkey '^q' fzf-cdr
-
 fzf_tab_config() {
     # disable sort when completing `git checkout`
     zstyle ':completion:*:git-checkout:*' sort false
@@ -108,6 +84,12 @@ fzf_tab_config() {
     zstyle ':fzf-tab:*' switch-group '<' '>'
 }
 fzf_config
+
+set_zoxide_config() {
+    eval "$(zoxide init zsh)"
+    eval "$(zoxide init zsh --cmd cd)"
+}
+set_zoxide_config
 
 # set extra path
 export PATH=$PATH:~/.local/bin/
