@@ -79,17 +79,25 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
+	# 基本プラグイン（高速）
 	git
-	zsh-autosuggestions
-	git-auto-fetch
-	zsh-syntax-highlighting
-	cd-gitroot
-	zsh-256color
 	myconfig
+
+	# 補完系（中速）
+	zsh-completions
+	fzf-tab
+
+	# 機能拡張
+	git-auto-fetch
+	cd-gitroot
 	zsh-you-should-use
 	forgit
-	fzf-tab
-	zsh-completions
+
+	# 重い処理は後半
+	zsh-autosuggestions
+
+	# syntax-highlightingは最後（必須）
+	zsh-syntax-highlighting
 )
 
 source $ZSH/oh-my-zsh.sh
