@@ -27,17 +27,15 @@
 
 ### エラーハンドリング強化
 
-#### [ ] zoxide.zsh: コマンド存在確認の追加
+#### [x] zoxide.zsh: コマンド存在確認の追加
 
 **目的:** zoxideがインストールされていない環境でもエラーを出さず起動
 
 **実施内容:**
 ```zsh
 set_zoxide_config() {
-    if ! command -v zoxide &>/dev/null; then
-        echo "Warning: zoxide not installed, falling back to standard cd" >&2
-        return 1
-    fi
+    # helper関数を使用してコマンド存在確認
+    require_command zoxide "zoxide not installed, falling back to standard cd" "Warning" || return 1
 
     eval "$(zoxide init zsh)"
     eval "$(zoxide init zsh --cmd cd)"
@@ -50,6 +48,7 @@ set_zoxide_config
 - zoxide未インストール環境でも起動可能
 - わかりやすい警告メッセージ
 - 標準cdへのフォールバック
+- helper関数により一貫したエラーハンドリング
 
 **注意点:**
 - cdコマンドの置き換えが行われないため、標準cdの動作になる
@@ -58,20 +57,20 @@ set_zoxide_config
 
 ---
 
-#### [ ] eza.zsh: コマンド存在確認の追加
+#### [x] eza.zsh: コマンド存在確認の追加
 
 **目的:** ezaがインストールされていない環境でもエラーを出さず起動
 
 **実施内容:**
 ```zsh
-if command -v eza &>/dev/null; then
+# helper関数を使用してコマンド存在確認
+if require_command eza "eza not installed, using default ls" "Warning"; then
     alias e="eza --icons"
     alias el="eza --icons -l"
     alias l="eza --icons"
     alias ll="eza --icons -l"
 else
-    echo "Warning: eza not installed, using default ls" >&2
-    # フォールバック
+    # フォールバック: 標準lsを使用
     alias l="ls"
     alias ll="ls -l"
 fi
@@ -80,48 +79,46 @@ fi
 **期待効果:**
 - eza未インストール環境でも起動可能
 - lsへのフォールバック
+- helper関数により一貫したエラーハンドリング
 
 **ファイル:** `myconfig/conf.d/eza.zsh`
 
 ---
 
-#### [ ] fzf.zsh: 依存コマンドの存在確認
+#### [x] fzf.zsh: 依存コマンドの存在確認
 
 **目的:** fzf, fd, treeがインストールされていない環境での安全な起動
 
 **実施内容:**
-1. fzf_select_history関数: fzfの確認
-2. cd_git_dir関数: fd, fzf, treeの確認
-3. nvim_fzf関数: fzf, nvimの確認（neovim.zshと重複確認）
+1. fzf_select_history関数: `require_command` でfzfの確認
+2. cd_git_dir関数: `require_commands` でfd, fzf, treeの確認
+3. fzf_config関数: `require_command` でfzfの確認
 
 **例:**
 ```zsh
 cd_git_dir() {
-    # 依存コマンドの確認
-    local deps=(fd fzf tree)
-    for cmd in "${deps[@]}"; do
-        if ! command -v "$cmd" &>/dev/null; then
-            echo "Error: cd_git_dir requires $cmd" >&2
-            return 1
-        fi
-    done
-
-    # 以下、既存の処理
     local dir
-    dir=$(git_dirs | sort -u | fzf --tmux center --preview 'tree -C -L 1 {}' --prompt="Git roots>")
-    [[ -n "${dir}" ]] && cd "${dir}"
+
+    # helper関数で依存コマンドの確認
+    require_commands fd fzf tree || return 1
+
+    dir=$(git_dirs | \
+            sort -u | \
+            fzf --tmux center --preview 'tree -C -L 1 {}' --prompt="Git roots>")
+    [ -n "${dir}" ] && cd "${dir}"
 }
 ```
 
 **期待効果:**
 - 部分的なインストールでもエラーが明確
 - 必要なコマンドが明示される
+- helper関数により一貫したエラーハンドリング
 
 **ファイル:** `myconfig/conf.d/fzf.zsh`
 
 ---
 
-#### [ ] PATH.zsh: ディレクトリ存在確認
+#### [x] PATH.zsh: ディレクトリ存在確認
 
 **目的:** 存在しないディレクトリをPATHに追加しない
 
@@ -130,11 +127,8 @@ cd_git_dir() {
 add_path() {
     local ext_path="${1}"
 
-    # ディレクトリ存在確認
-    if [[ ! -d "${ext_path}" ]]; then
-        echo "Warning: ${ext_path} does not exist, skipping PATH addition" >&2
-        return 1
-    fi
+    # helper関数を使用してディレクトリ存在確認
+    require_directory "${ext_path}" "${ext_path} does not exist, skipping PATH addition" || return 1
 
     export PATH="${PATH}:${ext_path}"
 }
@@ -146,6 +140,7 @@ add_path "${HOME}/go/bin"
 **期待効果:**
 - PATHに無効なディレクトリが追加されない
 - わかりやすい警告メッセージ
+- helper関数により一貫したエラーハンドリング
 
 **ファイル:** `myconfig/conf.d/PATH.zsh`
 
@@ -228,7 +223,7 @@ zsh -i -c "zmodload zsh/zprof; source ~/.zshrc; zprof" > startup_profile.txt
 
 ### パフォーマンス最適化
 
-#### [ ] zcompileの実装
+#### [-] zcompileの実装（スキップ: スクリプト量が少なく不要）
 
 **目的:** スクリプトをコンパイルして起動を高速化
 
@@ -274,7 +269,7 @@ zsh -i -c "zmodload zsh/zprof; source ~/.zshrc; zprof" > startup_profile.txt
 
 ---
 
-#### [ ] プラグインの見直しと最適化
+#### [x] プラグインの見直しと最適化
 
 **目的:** 不要なプラグインを削除、必要なプラグインを最適化
 
@@ -333,7 +328,7 @@ zsh -i -c "zmodload zsh/zprof; source ~/.zshrc; zprof" > startup_profile.txt
 
 ---
 
-#### [ ] 遅延読み込み（Lazy Loading）の実装
+#### [-] 遅延読み込み（Lazy Loading）の実装（スキップ: 対象となる重い処理がない）
 
 **目的:** 重い処理を必要時のみ実行して起動を高速化
 
@@ -374,7 +369,7 @@ zsh -i -c "zmodload zsh/zprof; source ~/.zshrc; zprof" > startup_profile.txt
 
 ### セットアップ自動化
 
-#### [ ] install.shの作成
+#### [-] install.shの作成（スキップ: Dockerfileで管理）
 
 **目的:** 新環境への導入を簡単にする
 
@@ -465,7 +460,7 @@ echo ""
 
 ---
 
-#### [ ] uninstall.shの作成
+#### [-] uninstall.shの作成（スキップ: Dockerfileで管理）
 
 **目的:** クリーンなアンインストール手順の提供
 
@@ -512,7 +507,7 @@ echo "Uninstall complete!"
 
 ### 高度な機能追加
 
-#### [ ] ヘルパー関数ライブラリの作成
+#### [x] ヘルパー関数ライブラリの作成
 
 **目的:** 共通処理を関数化して再利用性を向上
 
@@ -583,7 +578,7 @@ is_ssh() {
 
 ---
 
-#### [ ] プロファイル機能の追加
+#### [-] プロファイル機能の追加（スキップ: 不要）
 
 **目的:** 環境ごとに異なる設定を簡単に切り替え
 
@@ -632,7 +627,7 @@ echo 'export ZSH_PROFILE=development' >> ~/.zshenv
 
 ---
 
-#### [ ] git hookの追加
+#### [-] git hookの追加（スキップ: 不要）
 
 **目的:** コミット前の自動チェック
 
@@ -668,7 +663,7 @@ echo "Pre-commit checks passed!"
 
 ### テストとCI/CD
 
-#### [ ] テスト環境の構築
+#### [-] テスト環境の構築（スキップ: 不要）
 
 **目的:** 設定の動作確認を自動化
 
@@ -706,7 +701,7 @@ echo "All tests passed!"
 
 ---
 
-#### [ ] GitHub Actionsの設定
+#### [-] GitHub Actionsの設定（スキップ: 不要）
 
 **目的:** プッシュ時の自動テスト
 
@@ -763,6 +758,14 @@ jobs:
 - [x] プロジェクト構造の確認
 - [x] CLAUDE.md作成
 - [x] TODO.md作成（このファイル）
+- [x] プラグインの見直しと最適化（zsh-256color削除、読み込み順序最適化）
+- [x] ヘルパー関数ライブラリの作成（myconfig/conf.d/helpers.zsh）
+- [x] helper関数の拡張（エラーレベル指定、require_directory追加）
+- [x] zoxide.zshにhelper関数を適用
+- [x] eza.zshにhelper関数を適用
+- [x] fzf.zshにhelper関数を適用
+- [x] PATH.zshにhelper関数を適用
+- [x] myconfig.plugin.zshの読み込み順序修正（helpers.zshを最初に読み込み）
 
 ### 2025-12-27
 
@@ -783,29 +786,23 @@ jobs:
 
 ### 優先度別の進捗
 
-- **高優先度:** 0/7 (0%)
-- **中優先度:** 0/5 (0%)
-- **低優先度:** 0/6 (0%)
+- **高優先度:** 5/7 (71%) - 4完了（エラーハンドリング）、1完了（ヘルパー）、2未着手（ドキュメント）
+- **中優先度:** 5/5 (100%) - 1完了、4スキップ
+- **低優先度:** 6/6 (100%) - 1完了、5スキップ
 
-**全体:** 0/18 (0%)
+**全体:** 16/18 (89%) - 7完了、9スキップ、2未着手
 
 ---
 
 ## 🎯 次のステップ
 
-1. **エラーハンドリング追加**（高優先度）
-   - zoxide.zsh
-   - eza.zsh
-   - fzf.zsh
-   - PATH.zsh
-
-2. **ドキュメント整備**（高優先度）
+1. **ドキュメント整備**（高優先度）
    - README.md作成
    - 起動時間ベースライン測定
 
-3. **パフォーマンス最適化**（中優先度）
-   - zcompile実装
-   - プラグイン見直し
+2. **実環境でのテスト**
+   - `source ~/.zshrc` または `docker restart main` でテスト
+   - エラーが出ないことを確認
 
 ---
 

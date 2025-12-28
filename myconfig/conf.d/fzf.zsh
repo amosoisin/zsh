@@ -7,10 +7,7 @@ function fzf-select-history() {
 
 function enable_fzf_history() {
     # fzfコマンドの存在確認
-    if ! command -v fzf &>/dev/null; then
-        echo "Warning: fzf not installed, skipping fzf history integration" >&2
-        return 1
-    fi
+    require_command fzf "fzf not installed, skipping fzf history integration" "Warning" || return 1
 
     zle -N fzf-select-history
     bindkey '^r' fzf-select-history
@@ -49,17 +46,10 @@ git_dirs() {
 }
 
 cd_git_dir() {
-    local deps=(fd fzf tree)
-    local cmd
     local dir
 
     # 依存コマンドの確認
-    for cmd in "${deps[@]}"; do
-        if ! command -v "$cmd" &>/dev/null; then
-            echo "Error: cd_git_dir requires $cmd" >&2
-            return 1
-        fi
-    done
+    require_commands fd fzf tree || return 1
 
     dir=$(git_dirs | \
             sort -u | \
@@ -69,10 +59,7 @@ cd_git_dir() {
 
 fzf_config() {
     # fzfコマンドの存在確認
-    if ! command -v fzf &>/dev/null; then
-        echo "Warning: fzf not installed, skipping fzf configuration" >&2
-        return 1
-    fi
+    require_command fzf "fzf not installed, skipping fzf configuration" "Warning" || return 1
 
     alias fzf="fzf --tmux center"
     alias fvim=nvim_fzf

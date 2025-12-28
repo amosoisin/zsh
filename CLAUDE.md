@@ -263,23 +263,26 @@ cd_git_dir() {
 }
 ```
 
-### 4. 現在のエラーハンドリング状況
+### 4. エラーハンドリングの実装状況
 
-**改善が必要なファイル:**
+**✅ 改善済み（helper関数を使用）:**
 
-1. **zoxide.zsh** - zoxideコマンドの存在確認なし
-2. **eza.zsh** - ezaコマンドの存在確認なし
-3. **fzf.zsh** - fd, fzf, treeの存在確認なし
-4. **external.zsh** - load_env関数は実装済み（良い）
-5. **PATH.zsh** - ディレクトリ存在確認なし
+1. **zoxide.zsh** - `require_command`でzoxideの存在確認
+2. **eza.zsh** - `require_command`でezaの存在確認
+3. **fzf.zsh** - `require_command` / `require_commands`で依存コマンドの存在確認
+4. **PATH.zsh** - `require_directory`でディレクトリ存在確認
+5. **external.zsh** - `safe_source`で安全なファイル読み込み
 
-**改善例（zoxide.zsh）:**
+**重要な注意点:**
+- **helpers.zshを最初に読み込む必要があります**
+- myconfig.plugin.zshで`helpers.zsh`を明示的に最初にsourceしています
+- これにより、他のすべてのファイルでhelper関数が使用可能になります
+
+**実装例（zoxide.zsh）:**
 ```zsh
 set_zoxide_config() {
-    if ! command -v zoxide &>/dev/null; then
-        echo "Warning: zoxide not installed, falling back to standard cd" >&2
-        return 1
-    fi
+    # helper関数を使用してコマンド存在確認
+    require_command zoxide "zoxide not installed, falling back to standard cd" "Warning" || return 1
 
     eval "$(zoxide init zsh)"
     eval "$(zoxide init zsh --cmd cd)"
@@ -615,6 +618,13 @@ fi
 
 ### 改善履歴
 
+- **2025-12-28**: helper関数の拡張と全設定ファイルへの適用
+  - `require_command`にエラーレベル指定機能を追加（第3引数）
+  - `require_directory`関数を新規追加
+  - zoxide.zsh, eza.zsh, fzf.zsh, PATH.zshにhelper関数を適用
+  - myconfig.plugin.zshの読み込み順序を修正（helpers.zshを最初に読み込み）
+  - エラーハンドリングの一貫性と保守性が大幅に向上
+- **2025-12-28**: ヘルパー関数ライブラリの作成（myconfig/conf.d/helpers.zsh）
 - **2025-12-27**: 設定のモジュール化（myconfig/conf.d/に分割）
 - **2025-12-26**: eza移行（exaからの置き換え）
 - **2025-12-26**: zsh-completions追加

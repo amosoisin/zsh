@@ -2,10 +2,7 @@ add_path() {
     local ext_path="${1}"
 
     # ディレクトリ存在確認
-    if [[ ! -d "${ext_path}" ]]; then
-        echo "Warning: ${ext_path} does not exist, skipping PATH addition" >&2
-        return 1
-    fi
+    require_directory "${ext_path}" "${ext_path} does not exist, skipping PATH addition" || return 1
 
     export PATH="${PATH}:${ext_path}"
 }
