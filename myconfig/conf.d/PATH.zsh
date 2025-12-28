@@ -9,3 +9,4 @@ add_path() {
 
 add_path "${HOME}/.local/bin/"
 add_path "${HOME}/go/bin"
+add_path "${HOME}/lua-language-server/bin"
